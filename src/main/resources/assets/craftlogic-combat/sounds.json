@@ -1,0 +1,30 @@
+{
+    "combat.enter": {
+        "category": "player",
+        "subtitle": "craftlogic.subtitle.player_enter_combat",
+        "sounds": [
+            "craftlogic-combat:combat_enter"
+        ]
+    },
+    "combat.exit": {
+        "category": "player",
+        "subtitle": "craftlogic.subtitle.player_exit_combat",
+        "sounds": [
+            "craftlogic-combat:combat_exit"
+        ]
+    },
+    "combat.lost": {
+        "category": "player",
+        "subtitle": "craftlogic.subtitle.player_lost_combat",
+        "sounds": [
+            "craftlogic-combat:combat_lost"
+        ]
+    },
+    "combat.warn": {
+        "category": "player",
+        "subtitle": "craftlogic.subtitle.player_warn_combat",
+        "sounds": [
+            "craftlogic-combat:combat_warn"
+        ]
+    }
+}

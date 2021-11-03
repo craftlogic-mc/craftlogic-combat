@@ -1,0 +1,6 @@
+death.attack.combat_punishment=%1$s вышел из игры во время боя и был наказан
+
+chat.combat.no-teleport=Телепортация во время боя запрещена
+
+tooltip.combat.enter=Вы вступили в бой!
+tooltip.combat.exit=Бой окончен!

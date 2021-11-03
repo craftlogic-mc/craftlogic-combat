@@ -1,0 +1,6 @@
+death.attack.combat_punishment=%1$s left the game during a battle and was punished
+
+chat.combat.no-teleport=Teleportation is disabled while in combat
+
+tooltip.combat.enter=You've entered a combat!
+tooltip.combat.exit=Combat ended!
