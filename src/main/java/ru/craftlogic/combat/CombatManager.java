@@ -12,6 +12,8 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.LoaderState;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -142,8 +144,9 @@ public class CombatManager extends ConfigurableManager {
     }
 
     private boolean isInCombat(UUID id) {
+        boolean serverRunning = Loader.instance().getLoaderState() == LoaderState.SERVER_STARTED;
         AtomicInteger timer = timers.get(id);
-        return timer != null && timer.get() > 0;
+        return serverRunning && timer != null && timer.get() > 0;
     }
 
     private void playSound(EntityPlayerMP player, SoundEvent sound, float volume, float pitch) {
