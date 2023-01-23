@@ -1,6 +1,18 @@
 death.attack.combat_punishment=%1$s left the game during a battle and was punished
 
+commands.request_duel.pending=The duel request to %s has already been sent
+commands.request_duel.self=You can't challenge yourself to a duel
+commands.request_duel.question=%s wants to fight
+commands.request_duel.declined=Duel request rejected
+commands.duel_filled=All duels are filled
+commands.request_duel.accepted=Let the fight begin!
+commands.duel_already=The player is in a duel
+commands.request_teleport.declined=The challenge to the duel was rejected
+
 chat.combat.no-teleport=Teleportation is disabled while in combat
+chat.duel.winner=%s won %s in a fair fight
 
 tooltip.combat.enter=You've entered a combat!
 tooltip.combat.exit=Combat ended!
+tooltip.request_duel=Teleportation to a duel..
+tooltip.win_duel=You're going back..
