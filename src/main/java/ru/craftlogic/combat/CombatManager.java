@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CombatManager extends ConfigurableManager {
     private static final Logger LOGGER = LogManager.getLogger("combatManager");
 
-    private final Map<String, Duel> duels = new HashMap<>();
+    private final Map<String, CraftDuel> duels = new HashMap<>();
     private boolean enabled;
     private final Map<UUID, AtomicInteger> timers = new HashMap<>();
 
@@ -81,7 +81,7 @@ public class CombatManager extends ConfigurableManager {
         for (Map.Entry<String, JsonElement> entry : duels.entrySet()) {
             String id = entry.getKey();
             JsonObject value = (JsonObject) entry.getValue();
-            this.duels.put(id, new Duel(Integer.valueOf(id), value));
+            this.duels.put(id, new CraftDuel(Integer.valueOf(id), value));
         }
     }
 
@@ -89,18 +89,18 @@ public class CombatManager extends ConfigurableManager {
     protected void save(JsonObject config) {
         config.addProperty("enabled", enabled);
         JsonObject duels = new JsonObject();
-        for (Map.Entry<String, Duel> entry : this.duels.entrySet()) {
+        for (Map.Entry<String, CraftDuel> entry : this.duels.entrySet()) {
             duels.add(entry.getKey(), entry.getValue().toJson());
         }
         config.add("duels", duels);
     }
 
-    public Duel getDuel(String id) {
+    public CraftDuel getDuel(String id) {
         return duels.get(id);
     }
 
-    public Duel getDuel(EntityPlayer a, EntityPlayer b) {
-        for (Duel d : duels.values()) {
+    public CraftDuel getDuel(EntityPlayer a, EntityPlayer b) {
+        for (CraftDuel d : duels.values()) {
             if (d.hasParticipant(a.getGameProfile().getId()) && d.hasParticipant(b.getGameProfile().getId())) {
                 return d;
             }
@@ -108,8 +108,8 @@ public class CombatManager extends ConfigurableManager {
         return null;
     }
 
-    public Duel getDuel(UUID user) {
-        for (Duel d : duels.values()) {
+    public CraftDuel getDuel(UUID user) {
+        for (CraftDuel d : duels.values()) {
             if (d.hasParticipant(user)) {
                 return d;
             }
@@ -121,9 +121,9 @@ public class CombatManager extends ConfigurableManager {
         return getDuel(user) != null;
     }
 
-    public Duel getFreeDuel() {
-        for (Map.Entry<String, Duel> entry : this.duels.entrySet()) {
-            Duel duel = entry.getValue();
+    public CraftDuel getFreeDuel() {
+        for (Map.Entry<String, CraftDuel> entry : this.duels.entrySet()) {
+            CraftDuel duel = entry.getValue();
             if (!duel.isOccupied(server.getPlayerManager())) {
                 return duel;
             }
@@ -131,15 +131,15 @@ public class CombatManager extends ConfigurableManager {
         return null;
     }
 
-    public Duel createDuel(String id, Location location) throws IOException {
-        Duel duel = new Duel(Integer.valueOf(id), location);
+    public CraftDuel createDuel(String id, Location location) throws IOException {
+        CraftDuel duel = new CraftDuel(Integer.valueOf(id), location);
         duels.put(id, duel);
         save(true);
         return duel;
     }
 
-    public Duel deleteDuel(Integer id) throws IOException {
-        Duel duel = duels.remove(id.toString());
+    public CraftDuel deleteDuel(Integer id) throws IOException {
+        CraftDuel duel = duels.remove(id.toString());
         if (duel != null) {
             save(true);
         }
@@ -157,7 +157,7 @@ public class CombatManager extends ConfigurableManager {
     @SubscribeEvent
     @Optional.Method(modid = CraftRegions.MOD_ID)
     public void onPlayerPvp(RegionPvpStatusEvent event) {
-        Duel duel = getDuel(event.attacker, event.target);
+        CraftDuel duel = getDuel(event.attacker, event.target);
         if (duel != null) {
             event.setResult(Event.Result.ALLOW);
         }
@@ -189,13 +189,13 @@ public class CombatManager extends ConfigurableManager {
                 exitCombat(player);
                 timers.remove(id);
             }
-            Duel duel = getDuel(id);
+            CraftDuel duel = getDuel(id);
             if (duel != null) {
                 UUID winnerId = duel.finish(id);
                 if (winnerId != null) {
                     Player winner = server.getPlayerManager().getOnline(winnerId);
                     if (winner != null) {
-                        timers.remove(winner.getId());
+                        timers.remove(winnerId);
                         exitCombat(winner);
                         server.broadcast(Text.translation("chat.duel.winner").yellow()
                             .arg(winner.getName(), Text::gold)
@@ -215,6 +215,9 @@ public class CombatManager extends ConfigurableManager {
     public void enterCombat(EntityPlayer player) {
         if (!player.capabilities.disableDamage) {
             UUID id = player.getGameProfile().getId();
+            if (isInDuel(id)) {
+                return;
+            }
             if (timers.put(id, new AtomicInteger(300)) == null) {
                 TextComponentTranslation message = new TextComponentTranslation("tooltip.combat.enter");
                 message.getStyle().setColor(TextFormatting.YELLOW);
@@ -245,7 +248,7 @@ public class CombatManager extends ConfigurableManager {
                 Player player = playerManager.getOnline(entry.getKey());
                 if (player != null) {
                     AtomicInteger timer = entry.getValue();
-                    Duel duel = getDuel(entry.getKey());
+                    CraftDuel duel = getDuel(entry.getKey());
                     if (duel == null || !duel.isOccupied(playerManager)) {
                         if (timer.decrementAndGet() <= 0) {
                             iterator.remove();
@@ -266,7 +269,7 @@ public class CombatManager extends ConfigurableManager {
         player.playSound(CraftCombat.SOUND_EXIT, 0.8F, 1F);
     }
 
-    private boolean isInCombat(UUID id) {
+    public boolean isInCombat(UUID id) {
         boolean serverRunning = Loader.instance().getLoaderState() == LoaderState.SERVER_STARTED;
         AtomicInteger timer = timers.get(id);
         return serverRunning && timer != null && timer.get() > 0;

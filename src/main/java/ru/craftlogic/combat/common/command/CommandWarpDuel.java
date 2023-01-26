@@ -7,7 +7,7 @@ import ru.craftlogic.api.command.CommandContext;
 import ru.craftlogic.api.text.Text;
 import ru.craftlogic.api.world.Player;
 import ru.craftlogic.combat.CombatManager;
-import ru.craftlogic.combat.Duel;
+import ru.craftlogic.combat.CraftDuel;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ public class CommandWarpDuel extends CommandBase {
                         if (duelManager.getDuel(id) != null) {
                             throw new CommandException("commands.warp.create.exists", id);
                         }
-                        Duel duel = duelManager.createDuel(id, player.getLocation());
+                        CraftDuel duel = duelManager.createDuel(id, player.getLocation());
                         if (duel != null) {
                             ctx.sendNotification(
                                 Text.translation("commands.warp.create.success").green()
@@ -44,7 +44,7 @@ public class CommandWarpDuel extends CommandBase {
                     break;
                 }
                 case "delete": {
-                    Duel duel = duelManager.getDuel(id);
+                    CraftDuel duel = duelManager.getDuel(id);
                     if (duel == null) {
                         throw new CommandException("commands.warp.not-found", id);
                     }

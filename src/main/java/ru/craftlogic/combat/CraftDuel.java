@@ -7,23 +7,23 @@ import ru.craftlogic.api.world.Location;
 
 import java.util.UUID;
 
-public class Duel {
-    private final Integer id;
-    private Location location;
+public class CraftDuel {
+    private final int id;
+    private final Location location;
     private UUID sender, target;
 
-    public Duel(Integer id, JsonObject data) {
+    public CraftDuel(int id, JsonObject data) {
         this(id, Location.deserialize(JsonUtils.getInt(data, "dim", 0),
             JsonUtils.getJsonObject(data, "loc")));
 
     }
 
-    public Duel(Integer id, Location location) {
+    public CraftDuel(int id, Location location) {
         this.id = id;
         this.location = location;
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 

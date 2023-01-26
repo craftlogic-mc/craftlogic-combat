@@ -10,12 +10,11 @@ import ru.craftlogic.api.text.Text;
 import ru.craftlogic.api.world.Location;
 import ru.craftlogic.api.world.Player;
 import ru.craftlogic.combat.CombatManager;
-import ru.craftlogic.combat.Duel;
+import ru.craftlogic.combat.CraftDuel;
 
 public class CommandInviteDuel extends CommandBase {
     public CommandInviteDuel() {
-        super("pvp", 0,
-            "<target:Player>");
+        super("duel", 0, "<target:Player>");
     }
 
     @Override
@@ -29,7 +28,7 @@ public class CommandInviteDuel extends CommandBase {
         if (manager.isInDuel(sender.getId()) || manager.isInDuel(target.getId())) {
             throw new CommandException("commands.duel_already");
         }
-        Duel duel = manager.getFreeDuel();
+        CraftDuel duel = manager.getFreeDuel();
         if (duel == null) {
             throw new CommandException("commands.duel_filled");
         }
@@ -49,13 +48,11 @@ public class CommandInviteDuel extends CommandBase {
                             Text<?, ?> message = Text.translation("commands.request_duel.accepted").gold();
                             sender.sendMessage(message);
                             target.sendMessage(message);
-                            Text<?, ?> toast = Text.translation("tooltip.request_duel");
                             duel.begin(sender.getId(), target.getId());
-                            sender.teleportDelayed(server -> {}, "duel", toast, location, 5, true);
-                            target.teleportDelayed(server -> {}, "duel", toast, location, 5, true);
+                            sender.teleport(location);
+                            target.teleport(location);
                             manager.enterCombat(sender.getEntity());
                             manager.enterCombat(target.getEntity());
-
                         } else {
                             Text<?, ?> message = Text.translation("commands.request_teleport.declined").red();
                             sender.sendMessage(message);
