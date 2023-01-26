@@ -38,8 +38,7 @@ import ru.craftlogic.api.util.ConfigurableManager;
 import ru.craftlogic.api.world.Location;
 import ru.craftlogic.api.world.OfflinePlayer;
 import ru.craftlogic.api.world.Player;
-import ru.craftlogic.combat.common.command.CommandInviteDuel;
-import ru.craftlogic.combat.common.command.CommandWarpDuel;
+import ru.craftlogic.combat.common.command.CommandDuel;
 import ru.craftlogic.common.command.CommandManager;
 import ru.craftlogic.regions.CraftRegions;
 import ru.craftlogic.regions.common.event.RegionPvpStatusEvent;
@@ -149,8 +148,7 @@ public class CombatManager extends ConfigurableManager {
     @Override
     public void registerCommands(CommandManager commandManager) {
         if (server.isDedicated()) {
-            commandManager.registerCommand(new CommandInviteDuel());
-            commandManager.registerCommand(new CommandWarpDuel());
+            commandManager.registerCommand(new CommandDuel());
         }
     }
 
