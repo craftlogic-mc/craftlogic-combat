@@ -1,6 +1,7 @@
 package ru.craftlogic.combat;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.entity.Entity;
@@ -35,9 +36,7 @@ import ru.craftlogic.api.server.PlayerManager;
 import ru.craftlogic.api.server.Server;
 import ru.craftlogic.api.text.Text;
 import ru.craftlogic.api.util.ConfigurableManager;
-import ru.craftlogic.api.world.Location;
-import ru.craftlogic.api.world.OfflinePlayer;
-import ru.craftlogic.api.world.Player;
+import ru.craftlogic.api.world.*;
 import ru.craftlogic.combat.common.command.CommandDuel;
 import ru.craftlogic.common.command.CommandManager;
 import ru.craftlogic.regions.CraftRegions;
@@ -120,10 +119,10 @@ public class CombatManager extends ConfigurableManager {
         return getDuel(user) != null;
     }
 
-    public CraftDuel getFreeDuel() {
+    public CraftDuel getFreeDuel(World world) {
         for (Map.Entry<String, CraftDuel> entry : this.duels.entrySet()) {
             CraftDuel duel = entry.getValue();
-            if (!duel.isOccupied(server.getPlayerManager())) {
+            if (!duel.isOccupied(server.getPlayerManager()) && duel.hasLocations(world)) {
                 return duel;
             }
         }
@@ -131,7 +130,7 @@ public class CombatManager extends ConfigurableManager {
     }
 
     public CraftDuel createDuel(String id, Location location) throws IOException {
-        CraftDuel duel = new CraftDuel(Integer.valueOf(id), location);
+        CraftDuel duel = new CraftDuel(Integer.parseInt(id), Lists.newArrayList(location));
         duels.put(id, duel);
         save(true);
         return duel;
@@ -229,8 +228,9 @@ public class CombatManager extends ConfigurableManager {
     public void onPlayerExit(PlayerEvent.PlayerLoggedOutEvent event) {
         EntityPlayer player = event.player;
         if (!player.world.isRemote) {
-            if (isInCombat(player.getGameProfile().getId())) {
-                playSound((EntityPlayerMP) player, CraftCombat.SOUND_ENTER, 0.8F, 1F);
+            Player p = Player.from((EntityPlayerMP) player);
+            if (isInCombat(p.getId()) && !p.hasPermission("combat.immune")) {
+                p.playSound(CraftCombat.SOUND_ENTER, 0.8F, 1F);
                 player.attackEntityFrom(CraftCombat.PUNISHMENT, Float.MAX_VALUE);
             }
         }

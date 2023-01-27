@@ -8,6 +8,7 @@ import ru.craftlogic.api.command.CommandContext;
 import ru.craftlogic.api.event.player.PlayerTeleportReplyEvent;
 import ru.craftlogic.api.event.player.PlayerTeleportRequestEvent;
 import ru.craftlogic.api.text.Text;
+import ru.craftlogic.api.util.Pair;
 import ru.craftlogic.api.world.Location;
 import ru.craftlogic.api.world.Player;
 import ru.craftlogic.combat.CombatManager;
@@ -19,7 +20,7 @@ public class CommandDuel extends CommandBase {
     public CommandDuel() {
         super("duel", 1,
             "<target:Player>",
-            "<id:Duel> create|delete");
+            "<id:Duel> create|delete|pos");
     }
 
     @Override
@@ -71,19 +72,31 @@ public class CommandDuel extends CommandBase {
                     }
                     break;
                 }
+                case "pos": {
+                    CraftDuel duel = duelManager.getDuel(id);
+                    if (duel == null) {
+                        throw new CommandException("commands.warp.not-found", id);
+                    }
+                    if (ctx.checkPermission(true, "commands.duel.pos", 1)) {
+                        duel.addLocation(player.getLocation());
+                    }
+                }
             }
         } else {
             if (ctx.has("target")) {
                 Player sender = ctx.senderAsPlayer();
                 Player target = ctx.get("target").asPlayer();
-                if (sender == target) {
-                    throw new CommandException("commands.request_duel.self");
-                }
+//                if (sender == target) {
+//                    throw new CommandException("commands.request_duel.self");
+//                }
                 CombatManager manager = ctx.server().getManager(CombatManager.class);
                 if (manager.isInDuel(sender.getId()) || manager.isInDuel(target.getId())) {
                     throw new CommandException("commands.duel_already");
                 }
-                CraftDuel duel = manager.getFreeDuel();
+                if (sender.getWorld() != target.getWorld()) {
+                    throw new CommandException("commands.duel_same_world");
+                }
+                CraftDuel duel = manager.getFreeDuel(sender.getWorld());
                 if (duel == null) {
                     throw new CommandException("commands.duel_filled");
                 }
@@ -92,6 +105,7 @@ public class CommandDuel extends CommandBase {
                 } else if (!MinecraftForge.EVENT_BUS.post(new PlayerTeleportRequestEvent(sender, target, ctx))) {
                     Text<?, ?> title = Text.translation("commands.request_duel.question").arg(sender.getName());
                     target.sendToastQuestion("duel", title, 0x404040, 30, accepted -> {
+                        sender.sendMessage(Text.translation("commands.send_invite").yellow().arg(target.getName()).gold());
                         if (sender.isOnline() && target.isOnline()) {
                             if (!MinecraftForge.EVENT_BUS.post(new PlayerTeleportReplyEvent(sender, target, accepted, ctx))) {
                                 if (accepted) {
@@ -99,13 +113,13 @@ public class CommandDuel extends CommandBase {
                                         sender.sendMessage(Text.translation(new CommandException("commands.duel_already")));
                                         return;
                                     }
-                                    Location location = duel.getLocation();
+                                    Pair<Location, Location> location = duel.getLocation();
                                     Text<?, ?> message = Text.translation("commands.request_duel.accepted").gold();
                                     sender.sendMessage(message);
                                     target.sendMessage(message);
                                     duel.begin(sender.getId(), target.getId());
-                                    sender.teleport(location);
-                                    target.teleport(location);
+                                    sender.teleport(location.first());
+                                    target.teleport(location.second());
                                     manager.enterCombat(sender.getEntity());
                                     manager.enterCombat(target.getEntity());
                                 } else {

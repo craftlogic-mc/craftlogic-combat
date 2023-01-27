@@ -4,10 +4,12 @@ commands.request_duel.pending=Запрос на дуэль к %s уже отпр
 commands.request_duel.self=Вы не можете вызывать себя на дуэль
 commands.request_duel.question=%s хочет сразиться
 commands.request_duel.declined=Запрос на дуэль отклонён
-commands.duel_filled=Все дуэли заполнены
+commands.duel_filled=Нет доступных дуэлей в этом мире!
 commands.request_duel.accepted=Да начнётся бой!
 commands.duel_already=Игрок находится в дуэли
+commands.duel_same_world=Игроки должны находиться в одном мире
 commands.request_teleport.declined=Вызов на дуэль был отклонён
+commands.send_invite=%s отправлен запрос на дуэль
 
 chat.combat.no-teleport=Телепортация во время боя запрещена
 chat.duel.winner=%s победил %s в честном бою

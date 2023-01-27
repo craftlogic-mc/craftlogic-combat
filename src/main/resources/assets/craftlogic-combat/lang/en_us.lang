@@ -4,10 +4,12 @@ commands.request_duel.pending=The duel request to %s has already been sent
 commands.request_duel.self=You can't challenge yourself to a duel
 commands.request_duel.question=%s wants to fight
 commands.request_duel.declined=Duel request rejected
-commands.duel_filled=All duels are filled
+commands.duel_filled=There are no duels available in this world!
 commands.request_duel.accepted=Let the fight begin!
 commands.duel_already=The player is in a duel
+commands.duel_same_world=Players must be in the same world!
 commands.request_teleport.declined=The challenge to the duel was rejected
+commands.send_invite=%s a duel request has been sent
 
 chat.combat.no-teleport=Teleportation is disabled while in combat
 chat.duel.winner=%s won %s in a fair fight

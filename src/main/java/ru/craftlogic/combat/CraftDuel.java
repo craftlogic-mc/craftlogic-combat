@@ -1,34 +1,67 @@
 package ru.craftlogic.combat;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.util.JsonUtils;
 import ru.craftlogic.api.server.PlayerManager;
+import ru.craftlogic.api.util.Pair;
 import ru.craftlogic.api.world.Location;
+import ru.craftlogic.api.world.World;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 public class CraftDuel {
     private final int id;
-    private final Location location;
+    private final List<Location> location;
     private UUID sender, target;
 
     public CraftDuel(int id, JsonObject data) {
-        this(id, Location.deserialize(JsonUtils.getInt(data, "dim", 0),
-            JsonUtils.getJsonObject(data, "loc")));
-
+        this(id, locations(JsonUtils.getJsonArray(data, "loc")));
     }
 
-    public CraftDuel(int id, Location location) {
+    public CraftDuel(int id, List<Location> location) {
         this.id = id;
         this.location = location;
+    }
+
+    private static List<Location> locations(JsonArray array) {
+        List<Location> result = new ArrayList<>(array.size());
+        for (JsonElement e : array) {
+            JsonObject o = e.getAsJsonObject();
+            int dim = JsonUtils.getInt(o, "dim");
+            result.add(Location.deserialize(dim, o));
+        }
+        return result;
+
     }
 
     public int getId() {
         return id;
     }
 
-    public Location getLocation() {
-        return location;
+    public Pair<Location, Location> getLocation() {
+        if (location.size() < 2) {
+            return null;
+        }
+        Random random = new Random();
+        int a = random.nextInt(location.size());
+        int b;
+        while ((b = random.nextInt(location.size())) == a) {}
+        return Pair.of(location.get(a), location.get(b));
+    }
+
+    public boolean hasLocations(World world) {
+        int count = 0;
+        for (Location l : location) {
+            if (l.getDimension() == world.getDimension()) {
+                count++;
+            }
+        }
+        return count > 1;
     }
 
     public boolean isOccupied(PlayerManager manager) {
@@ -63,8 +96,17 @@ public class CraftDuel {
 
     public JsonObject toJson() {
         JsonObject obj = new JsonObject();
-        obj.addProperty("dim", location.getDimensionId());
-        obj.add("loc", location.serialize());
+        JsonArray loc = new JsonArray();
+        for (Location l : location) {
+            JsonObject o = l.serialize();
+            o.addProperty("dim", l.getDimensionId());
+            loc.add(o);
+        }
+        obj.add("loc", loc);
         return obj;
+    }
+
+    public void addLocation(Location location) {
+        this.location.add(location);
     }
 }
