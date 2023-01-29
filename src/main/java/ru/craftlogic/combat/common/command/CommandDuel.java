@@ -78,6 +78,7 @@ public class CommandDuel extends CommandBase {
                         throw new CommandException("commands.warp.not-found", id);
                     }
                     if (ctx.checkPermission(true, "commands.duel.pos", 1)) {
+                        player.sendMessage(Text.translation("commands.duel.pos_add"));
                         duel.addLocation(player.getLocation());
                     }
                 }
@@ -123,7 +124,7 @@ public class CommandDuel extends CommandBase {
                                     manager.enterCombat(sender.getEntity());
                                     manager.enterCombat(target.getEntity());
                                 } else {
-                                    Text<?, ?> message = Text.translation("commands.request_teleport.declined").red();
+                                    Text<?, ?> message = Text.translation("commands.request_duel.declined").red();
                                     sender.sendMessage(message);
                                     target.sendMessage(message);
                                 }

@@ -4,19 +4,25 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.network.play.server.SPacketSoundEffect;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.LoaderState;
 import net.minecraftforge.fml.common.Optional;
@@ -32,11 +38,16 @@ import ru.craftlogic.api.event.player.PlayerTeleportHomeEvent;
 import ru.craftlogic.api.event.player.PlayerTeleportReplyEvent;
 import ru.craftlogic.api.event.player.PlayerTeleportRequestEvent;
 import ru.craftlogic.api.event.player.PlayerTimedTeleportEvent;
+import ru.craftlogic.api.permission.PermissionManager;
 import ru.craftlogic.api.server.PlayerManager;
 import ru.craftlogic.api.server.Server;
 import ru.craftlogic.api.text.Text;
 import ru.craftlogic.api.util.ConfigurableManager;
-import ru.craftlogic.api.world.*;
+import ru.craftlogic.api.world.Location;
+import ru.craftlogic.api.world.OfflinePlayer;
+import ru.craftlogic.api.world.Player;
+import ru.craftlogic.api.world.World;
+import ru.craftlogic.combat.common.command.CommandCt;
 import ru.craftlogic.combat.common.command.CommandDuel;
 import ru.craftlogic.common.command.CommandManager;
 import ru.craftlogic.regions.CraftRegions;
@@ -91,6 +102,10 @@ public class CombatManager extends ConfigurableManager {
             duels.add(entry.getKey(), entry.getValue().toJson());
         }
         config.add("duels", duels);
+    }
+
+    public AtomicInteger getTimer(UUID id) {
+        return timers.get(id);
     }
 
     public CraftDuel getDuel(String id) {
@@ -148,6 +163,7 @@ public class CombatManager extends ConfigurableManager {
     public void registerCommands(CommandManager commandManager) {
         if (server.isDedicated()) {
             commandManager.registerCommand(new CommandDuel());
+            commandManager.registerCommand(new CommandCt());
         }
     }
 
@@ -213,6 +229,9 @@ public class CombatManager extends ConfigurableManager {
         if (!player.capabilities.disableDamage) {
             UUID id = player.getGameProfile().getId();
             if (isInDuel(id)) {
+                if (!isInCombat(id)) {
+                    timers.put(id, new AtomicInteger(300));
+                }
                 return;
             }
             if (timers.put(id, new AtomicInteger(300)) == null) {
@@ -228,9 +247,9 @@ public class CombatManager extends ConfigurableManager {
     public void onPlayerExit(PlayerEvent.PlayerLoggedOutEvent event) {
         EntityPlayer player = event.player;
         if (!player.world.isRemote) {
-            Player p = Player.from((EntityPlayerMP) player);
-            if (isInCombat(p.getId()) && !p.hasPermission("combat.immune")) {
-                p.playSound(CraftCombat.SOUND_ENTER, 0.8F, 1F);
+            PermissionManager manager = server.getPermissionManager();
+            GameProfile profile = player.getGameProfile();
+            if (isInCombat(profile.getId()) && !manager.hasPermission(profile, "combat.immune")) {
                 player.attackEntityFrom(CraftCombat.PUNISHMENT, Float.MAX_VALUE);
             }
         }
@@ -259,6 +278,32 @@ public class CombatManager extends ConfigurableManager {
             }
         }
     }
+
+    @SubscribeEvent
+    public void abuseInDuel(PlayerInteractEvent.RightClickItem event) {
+        Item item = event.getItemStack().getItem();
+        UUID id = event.getEntityPlayer().getGameProfile().getId();
+        if (isInDuel(id))
+            if (item == Items.ENDER_PEARL || item == Items.CHORUS_FRUIT) {
+                event.setCancellationResult(EnumActionResult.FAIL);
+                event.setCanceled(true);
+            }
+    }
+
+
+    @SubscribeEvent
+    public void abuseInDuelPerl(EnderTeleportEvent event) {
+        EntityLivingBase entityLiving = event.getEntityLiving();
+        if (entityLiving instanceof EntityPlayer) {
+            EntityPlayer player = (EntityPlayer) entityLiving;
+            UUID id = player.getGameProfile().getId();
+            if (isInDuel(id)) {
+                event.setCanceled(true);
+            }
+        }
+    }
+
+
 
     private void exitCombat(Player player) {
         TextComponentTranslation message = new TextComponentTranslation("tooltip.combat.exit");

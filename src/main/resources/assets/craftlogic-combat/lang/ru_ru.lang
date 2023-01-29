@@ -3,13 +3,15 @@ death.attack.combat_punishment=%1$s вышел из игры во время б�
 commands.request_duel.pending=Запрос на дуэль к %s уже отправлен
 commands.request_duel.self=Вы не можете вызывать себя на дуэль
 commands.request_duel.question=%s хочет сразиться
-commands.request_duel.declined=Запрос на дуэль отклонён
 commands.duel_filled=Нет доступных дуэлей в этом мире!
 commands.request_duel.accepted=Да начнётся бой!
 commands.duel_already=Игрок находится в дуэли
 commands.duel_same_world=Игроки должны находиться в одном мире
-commands.request_teleport.declined=Вызов на дуэль был отклонён
+commands.duel.pos_add=Координата добавлена
+commands.request_duel.declined=Вызов на дуэль был отклонён
 commands.send_invite=%s отправлен запрос на дуэль
+command.none_ct=Вы не находитесь в бою
+command.now_ct=%s секунд(ы)
 
 chat.combat.no-teleport=Телепортация во время боя запрещена
 chat.duel.winner=%s победил %s в честном бою
