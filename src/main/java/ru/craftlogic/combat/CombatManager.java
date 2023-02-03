@@ -9,10 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.network.play.server.SPacketSoundEffect;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.JsonUtils;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -22,7 +19,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.LoaderState;
 import net.minecraftforge.fml.common.Optional;
@@ -196,6 +192,9 @@ public class CombatManager extends ConfigurableManager {
         if (living instanceof EntityPlayerMP) {
             PlayerManager manager = server.getPlayerManager();
             OfflinePlayer loser = manager.getOffline(((EntityPlayerMP) living).getGameProfile().getId());
+            if (loser == null) {
+                return;
+            }
             UUID id = loser.getId();
             Player player = manager.getOnline(id);
             if (player != null) {
@@ -280,18 +279,6 @@ public class CombatManager extends ConfigurableManager {
     }
 
     @SubscribeEvent
-    public void abuseInDuel(PlayerInteractEvent.RightClickItem event) {
-        Item item = event.getItemStack().getItem();
-        UUID id = event.getEntityPlayer().getGameProfile().getId();
-        if (isInDuel(id))
-            if (item == Items.ENDER_PEARL || item == Items.CHORUS_FRUIT) {
-                event.setCancellationResult(EnumActionResult.FAIL);
-                event.setCanceled(true);
-            }
-    }
-
-
-    @SubscribeEvent
     public void abuseInDuelPerl(EnderTeleportEvent event) {
         EntityLivingBase entityLiving = event.getEntityLiving();
         if (entityLiving instanceof EntityPlayer) {
@@ -302,8 +289,6 @@ public class CombatManager extends ConfigurableManager {
             }
         }
     }
-
-
 
     private void exitCombat(Player player) {
         TextComponentTranslation message = new TextComponentTranslation("tooltip.combat.exit");
