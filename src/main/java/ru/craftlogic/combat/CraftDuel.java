@@ -44,13 +44,14 @@ public class CraftDuel {
     }
 
     public Pair<Location, Location> getLocation() {
-        if (location.size() < 2) {
+        int size = location.size();
+        if (size < 2) {
             return null;
         }
         Random random = new Random();
-        int a = random.nextInt(location.size());
+        int a = random.nextInt(size);
         int b;
-        while ((b = random.nextInt(location.size())) == a) {}
+        while ((b = random.nextInt(size)) == a) {}
         return Pair.of(location.get(a), location.get(b));
     }
 
