@@ -9,12 +9,13 @@ commands.duel_already=Игрок находится в дуэли
 commands.duel_same_world=Игроки должны находиться в одном мире
 commands.duel.pos_add=Координата добавлена
 commands.request_duel.declined=Вызов на дуэль был отклонён
-commands.send_invite=%s отправлен запрос на дуэль
+commands.duel.send_invite=Игроку %s отправлен запрос на дуэль
 command.none_ct=Боевая метка отсутствует
 command.now_ct=%s секунд(ы)
 
 chat.combat.no-teleport=Телепортация во время боя запрещена
 chat.duel.winner=%s победил %s в честном бою
+chat.message.winner=Для выхода из арены используйте - duel exit
 
 tooltip.combat.enter=Вы вступили в бой!
 tooltip.combat.exit=Бой окончен!

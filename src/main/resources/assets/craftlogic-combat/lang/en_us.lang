@@ -9,12 +9,13 @@ commands.duel_already=The player is in a duel
 commands.duel_same_world=Players must be in the same world!
 commands.duel.pos_add=Coordinate added
 commands.request_duel.declined=The challenge to the duel was rejected
-commands.send_invite=%s a duel request has been sent
+commands.duel.send_invite=Duel request has been sent to %s
 command.none_ct=You are not in a fight
 command.now_ct=%s seconds
 
 chat.combat.no-teleport=Teleportation is disabled while in combat
 chat.duel.winner=%s won %s in a fair fight
+chat.message.winner=To exit the arena, use - duel exit
 
 tooltip.combat.enter=You've entered a combat!
 tooltip.combat.exit=Combat ended!

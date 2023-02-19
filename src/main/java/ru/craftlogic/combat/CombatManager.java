@@ -1,6 +1,5 @@
 package ru.craftlogic.combat;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -104,6 +103,10 @@ public class CombatManager extends ConfigurableManager {
         return timers.get(id);
     }
 
+    public void removeTimer(UUID id) {
+        timers.remove(id);
+    }
+
     public CraftDuel getDuel(String id) {
         return duels.get(id);
     }
@@ -129,6 +132,7 @@ public class CombatManager extends ConfigurableManager {
     public boolean isInDuel(UUID user) {
         return getDuel(user) != null;
     }
+
 
     public CraftDuel getFreeDuel(World world) {
         for (Map.Entry<String, CraftDuel> entry : this.duels.entrySet()) {
@@ -177,7 +181,7 @@ public class CombatManager extends ConfigurableManager {
         if (!event.isCanceled()) {
             EntityPlayer player = event.getEntityPlayer();
             Entity target = event.getTarget();
-            if (target instanceof EntityPlayer && !target.world.isRemote) {
+            if (target instanceof EntityPlayer && !target.world.isRemote && !target.isDead) {
                 if (!player.capabilities.isCreativeMode) {
                     enterCombat(player);
                 }
@@ -207,16 +211,8 @@ public class CombatManager extends ConfigurableManager {
                 if (winnerId != null) {
                     Player winner = server.getPlayerManager().getOnline(winnerId);
                     if (winner != null) {
-                        timers.remove(winnerId);
-                        exitCombat(winner);
-                        server.broadcast(Text.translation("chat.duel.winner").yellow()
-                            .arg(winner.getName(), Text::gold)
-                            .arg(loser.getName(), Text::yellow));
-                        Text<?, ?> toast = Text.translation("tooltip.win_duel");
-                        Location bedLocation = winner.getBedLocation();
-                        Location spawnLocation = winner.getWorld().getSpawnLocation();
-                        winner.teleportDelayed(server -> duel.clear(), "duel", toast,
-                            MoreObjects.firstNonNull(bedLocation, spawnLocation), 15, true);
+                        server.broadcast(Text.translation("chat.duel.winner").yellow().arg(winner.getName(), Text::gold).arg(loser.getName(), Text::yellow));
+                        winner.sendMessage(Text.translation("chat.message.winner").red());
                     }
 
                 }
@@ -227,10 +223,7 @@ public class CombatManager extends ConfigurableManager {
     public void enterCombat(EntityPlayer player) {
         if (!player.capabilities.disableDamage) {
             UUID id = player.getGameProfile().getId();
-            if (isInDuel(id)) {
-                if (!isInCombat(id)) {
-                    timers.put(id, new AtomicInteger(300));
-                }
+            if (isInDuel(id) && isInCombat(id)) {
                 return;
             }
             if (timers.put(id, new AtomicInteger(300)) == null) {
@@ -342,7 +335,12 @@ public class CombatManager extends ConfigurableManager {
     }
 
     private void checkTeleport(net.minecraftforge.event.entity.player.PlayerEvent event, Player player) {
-        if (isInCombat(player.getId())) {
+        UUID id = player.getId();
+        if (isInCombat(id)) {
+            if (isInDuel(id) && getDuel(id).isWinner()) {
+                player.sendMessage(Text.translation("chat.message.winner").red());
+                event.setCanceled(true);
+            }
             event.setCanceled(true);
             player.sendMessage(Text.translation("chat.combat.no-teleport").red());
             player.playSound(CraftCombat.SOUND_WARN, 0.8F, 1F);

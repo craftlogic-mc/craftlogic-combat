@@ -66,7 +66,7 @@ public class CraftDuel {
     }
 
     public boolean isOccupied(PlayerManager manager) {
-        return sender != null && manager.getOnline(sender) != null || target != null && manager.getOnline(target) != null;
+        return sender != null && manager.getOnline(sender) != null && target != null && manager.getOnline(target) != null;
     }
 
     public void begin(UUID a, UUID b) {
@@ -75,10 +75,10 @@ public class CraftDuel {
     }
 
     public UUID finish(UUID loser) {
-        if (sender == loser) {
+        if (loser.equals(sender)) {
             sender = null;
             return target;
-        } else if (target == loser) {
+        } else if (loser.equals(target)) {
             target = null;
             return sender;
         }
@@ -90,8 +90,12 @@ public class CraftDuel {
         target = null;
     }
 
+    public boolean isWinner() {
+        return sender == null || target == null;
+    }
+
     public boolean hasParticipant(UUID user) {
-        return sender == user || target == user;
+        return user.equals(sender) || user.equals(target);
     }
 
 
